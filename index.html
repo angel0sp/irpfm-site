@@ -560,6 +560,7 @@ var MAX_EMPS=6;
 var WA='https://wa.me/5548996068935?text=Ol%C3%A1%21%20Fiz%20a%20simula%C3%A7%C3%A3o%20do%20imposto%20m%C3%ADnimo%20e%20quero%20que%20a%20equipe%20de%20wealth%20analise%20o%20meu%20caso.';
 function exemplo(){return {emps:[{nome:'',valor:900000,meses:12},{nome:'',valor:600000,meses:12}],trib:320000,modo:'aliq',aliq:'15',irPago:48000,isento:300000,antigos:0,redutor:0}}
 var st=exemplo();
+var mexeu=false;
 
 /* ---------- topo ---------- */
 var desenhou=false;
@@ -655,8 +656,10 @@ function render(){
   if(r.base<=600000) ask='<p><b>Hoje você está fora da regra.</b> Faltam '+brl(600000-r.base)+' para ela começar a valer. Você sabe o que acontece se aumentar as retiradas?</p>';
   else if(r.complemento>0) ask='<p><b>'+brl(r.complemento)+' por ano. Mantidos esses números, '+brl(r.complemento*5)+' em cinco anos.</b> '+(r.base<1200000?'E você está na faixa em que cada real a mais pesa mais. ':'')+'Você já sabe de onde sai esse dinheiro e o que dá para organizar antes da declaração?</p>';
   else ask='<p><b>Hoje o IR que você já paga cobre o piso.</b> Você sabe o quanto pode mudar nas retiradas ou nas aplicações sem passar a completar?</p>';
-  ask+='<p>Nossa equipe de wealth analisa o seu caso com os números reais.</p><a class="wa" href="'+WA+'">Pedir a análise do meu caso</a><span class="hint">WhatsApp (48) 99606-8935</span>';
+  var zap=mexeu?'https://wa.me/5548996068935?text='+encodeURIComponent('Olá! Fiz a simulação do imposto mínimo e quero que a equipe de wealth analise o meu caso.\n\n'+resumoTexto()):WA;
+  ask+='<p>Nossa equipe de wealth analisa o seu caso com os números reais.</p><a class="wa" href="'+zap+'">Pedir a análise do meu caso</a><span class="hint">WhatsApp (48) 99606-8935'+(mexeu?'. A mensagem já vai com o resumo da sua simulação.':'')+'</span>';
   $('ask').innerHTML=ask;
+  var links=document.querySelectorAll('a.wa');for(var li=0;li<links.length;li++) links[li].href=zap;
   $('spin-custo').textContent=r.complemento>0?'Pela sua simulação, são '+brl(r.complemento)+' por ano. Mantidos esses números, '+brl(r.complemento*5)+' em cinco anos.':'Quem completa R$ 100 mil por ano deixa R$ 500 mil em cinco anos.';
 
   $('kpi-total').textContent=brl(r.irTotal);
@@ -677,7 +680,7 @@ $('emps').addEventListener('input',function(e){
 $('emps').addEventListener('change',function(e){var t=e.target;if(t.dataset.k==='meses'){st.emps[+t.dataset.i].meses=parseInt(t.value,10)||12;render()}});
 $('emps').addEventListener('click',function(e){
   var rm=e.target.dataset.rm;if(rm==null) return;
-  st.emps.splice(+rm,1);montarEmpresas();render();
+  mexeu=true;st.emps.splice(+rm,1);montarEmpresas();render();
 });
 $('btn-add').addEventListener('click',function(){
   if(st.emps.length>=MAX_EMPS) return;
@@ -697,6 +700,7 @@ $('in-aliq').addEventListener('input',function(e){e.target.value=e.target.value.
 })});
 $('hero-range').addEventListener('input',drawHero);
 $('form').addEventListener('submit',function(e){e.preventDefault()});
+['input','change'].forEach(function(ev){$('form').addEventListener(ev,function(){mexeu=true},true)});
 $('btn-copy').addEventListener('click',function(){
   if(!ultimo) return;
   var t=resumoTexto();
@@ -766,6 +770,7 @@ $('ck-nao').addEventListener('click',function(){escolhaCookies('nao')});
   try{
     var o=JSON.parse(localStorage.getItem('imposto-minimo-v1'));
     if(o&&Array.isArray(o.emps)&&o.emps.length){
+      mexeu=JSON.stringify(o)!==JSON.stringify(exemplo());
       var b=exemplo();
       st={emps:o.emps.slice(0,MAX_EMPS).map(function(e){return {nome:String(e.nome||'').slice(0,40),valor:+e.valor||0,meses:[12,6,4,3,2,1].indexOf(+e.meses)>=0?+e.meses:12}}),
         trib:+o.trib||0,modo:o.modo==='valor'?'valor':'aliq',aliq:o.aliq!=null?String(o.aliq):b.aliq,irPago:+o.irPago||0,isento:+o.isento||0,antigos:+o.antigos||0,redutor:+o.redutor||0};

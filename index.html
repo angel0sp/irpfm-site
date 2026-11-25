@@ -226,6 +226,7 @@ details .group + .group{margin-top:14px}
 .lead button.wa[disabled]{opacity:.6;cursor:default}
 .lead .fine{font-size:.82rem;opacity:.7;max-width:none}
 #lead-status{font-size:.95rem}
+#lead-status a{color:inherit;font-weight:700;text-decoration:underline}
 @media (max-width:760px){.lead-grid{grid-template-columns:1fr}}
 .spin{display:grid;grid-template-columns:repeat(4,1fr);border:1.5px solid var(--paper)}
 .spin .q{padding:16px;display:flex;flex-direction:column;gap:8px;border-right:1.5px solid var(--paper)}
@@ -730,11 +731,16 @@ $('lead').addEventListener('submit',function(e){
   if(msg) dados.Mensagem=msg;
   if($('lead-resumo').checked&&ultimo) dados['Simulação']=resumoTexto();
   btn.disabled=true;st2.textContent='Enviando...';
-  var falhou=function(){btn.disabled=false;st2.textContent='Não foi possível enviar agora. Fale pelo WhatsApp (48) 99606-8935.'};
-  fetch('https://formsubmit.co/ajax/ascreminpaulino@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(dados)})
+  var texto='Olá! Quero que a equipe de wealth analise o meu caso.\nNome: '+nome+'\nTelefone: '+tel+(email?'\nE-mail: '+email:'')+(msg?'\nMensagem: '+msg:'')+(dados['Simulação']?'\n\n'+dados['Simulação']:'');
+  var zap='https://wa.me/5548996068935?text='+encodeURIComponent(texto);
+  var fim=false,ctl=window.AbortController?new AbortController():null;
+  var lento=setTimeout(function(){if(!fim) st2.innerHTML='O envio está demorando. Se preferir, <a href="'+zap+'">mande agora pelo WhatsApp</a>.'},8000);
+  var corte=setTimeout(function(){if(ctl) ctl.abort()},75000);
+  var falhou=function(){if(fim) return;fim=true;clearTimeout(lento);clearTimeout(corte);btn.disabled=false;st2.innerHTML='Não foi possível enviar por aqui. <a href="'+zap+'">Mande pelo WhatsApp</a> ou fale no (48) 99606-8935.'};
+  fetch('https://formsubmit.co/ajax/ascreminpaulino@gmail.com',{method:'POST',signal:ctl?ctl.signal:undefined,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(dados)})
     .then(function(r){return r.json()})
     .then(function(d){
-      if(d&&String(d.success)==='true'){if(window.gtag) gtag('event','generate_lead',{method:'formulario'});$('lead').reset();btn.disabled=false;st2.textContent='Recebemos o seu contato. A equipe vai falar com você.'}
+      if(d&&String(d.success)==='true'){fim=true;clearTimeout(lento);clearTimeout(corte);if(window.gtag) gtag('event','generate_lead',{method:'formulario'});$('lead').reset();btn.disabled=false;st2.textContent='Recebemos o seu contato. A equipe vai falar com você.'}
       else falhou();
     }).catch(falhou);
 });

@@ -370,7 +370,6 @@ footer b{color:var(--ink)}
             </div>
           </details>
 
-          <div class="btn-row"><button type="button" class="btn" id="btn-reset">Voltar ao exemplo</button></div>
         </div>
       </form>
 
@@ -698,7 +697,6 @@ $('in-aliq').addEventListener('input',function(e){e.target.value=e.target.value.
 })});
 $('hero-range').addEventListener('input',drawHero);
 $('form').addEventListener('submit',function(e){e.preventDefault()});
-$('btn-reset').addEventListener('click',function(){st=exemplo();preencher();render()});
 $('btn-copy').addEventListener('click',function(){
   if(!ultimo) return;
   var t=resumoTexto();
